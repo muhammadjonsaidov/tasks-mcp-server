@@ -49,9 +49,8 @@ public class TaskService {
     }
 
     @McpTool(name = "updateTaskStatus", description = "Update the status of an existing task by its ID")
-    public String updateTaskStatus(
-            @McpToolParam(description = "The ID of the task") String taskId,
-            @McpToolParam(description = "The new status (e.g., TODO, IN_PROGRESS, DONE)") String newStatus) {
+    public String updateTaskStatus(@McpToolParam(description = "The ID of the task") String taskId,
+                                   @McpToolParam(description = "The new status (e.g., TODO, IN_PROGRESS, DONE)") String newStatus) {
         Task task = tasks.get(taskId);
         if (task == null) {
             return "Error: Task with ID " + taskId + " not found.";
