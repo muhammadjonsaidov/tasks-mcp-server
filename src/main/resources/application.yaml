@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: tasks-mcp-server
+
+  ai:
+    mcp:
+      server:
+        stdio: true
+        name: task-manager-server
+        version: 1.0.0
+server:
+  port: 8080
