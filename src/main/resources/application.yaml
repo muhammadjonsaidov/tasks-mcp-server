@@ -5,7 +5,8 @@ spring:
   ai:
     mcp:
       server:
-        stdio: true
+        stdio: false
+        protocol: streamable
         name: task-manager-server
         version: 1.0.0
 server:

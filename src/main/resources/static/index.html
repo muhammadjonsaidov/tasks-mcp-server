@@ -22,13 +22,14 @@
             width: 100%; border-collapse: collapse;
             background: #1e293b; border-radius: 8px; overflow: hidden;
         }
-        th, td { padding: 12px 16px; text-align: left; }
+        th, td { padding: 12px 16px; text-align: left; vertical-align: top; }
         th { background: #334155; color: #cbd5e1; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
         tr:not(:last-child) td { border-bottom: 1px solid #334155; }
         code { color: #fbbf24; font-size: 0.85rem; }
         .status {
             display: inline-block; padding: 4px 10px;
             border-radius: 12px; font-size: 0.75rem; font-weight: bold;
+            background: #64748b; color: #ffffff;
         }
         .TODO         { background: #f59e0b; color: #0f172a; }
         .IN_PROGRESS  { background: #3b82f6; color: #ffffff; }
@@ -36,6 +37,18 @@
         .empty { text-align: center; color: #64748b; padding: 2rem; }
         .flash { animation: flash 0.6s ease-out; }
         @keyframes flash { from { background: #334155; } to { background: transparent; } }
+        /* rendered markdown inside the description cell */
+        .md > :first-child { margin-top: 0; }
+        .md > :last-child  { margin-bottom: 0; }
+        .md p { margin: 0 0 6px; }
+        .md ul, .md ol { margin: 4px 0; padding-left: 1.25rem; }
+        .md li { margin: 2px 0; }
+        .md a { color: #38bdf8; }
+        .md code { background: #0f172a; color: #fbbf24; padding: 1px 5px; border-radius: 4px; }
+        .md pre { background: #0f172a; padding: 10px; border-radius: 6px; overflow-x: auto; margin: 6px 0; }
+        .md pre code { background: none; padding: 0; }
+        .md blockquote { border-left: 3px solid #334155; margin: 6px 0; padding-left: 10px; color: #94a3b8; }
+        .md h1, .md h2, .md h3 { margin: 6px 0; font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -44,14 +57,18 @@
 
 <table>
     <thead>
-    <tr><th>ID</th><th>Title</th><th>Status</th></tr>
+    <tr><th>ID</th><th>Title</th><th>Description</th><th>Status</th></tr>
     </thead>
     <tbody id="tasks-body">
-    <tr><td colspan="3" class="empty">Waiting for tasks…</td></tr>
+    <tr><td colspan="4" class="empty">Waiting for tasks…</td></tr>
     </tbody>
 </table>
 
+<script src="/vendor/marked.min.js"></script>
+<script src="/vendor/purify.min.js"></script>
 <script>
+    marked.setOptions({ gfm: true, breaks: true });
+
     const tbody = document.getElementById('tasks-body');
     let prevIds = new Set();
 
@@ -63,12 +80,12 @@
     });
 
     evtSource.onerror = () => {
-        tbody.innerHTML = '<tr><td colspan="3" class="empty">⚠️ Connection lost. Retrying…</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="empty">⚠️ Connection lost. Retrying…</td></tr>';
     };
 
     function render(tasks) {
         if (!tasks || tasks.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="empty">No tasks yet. Ask Claude to create one!</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="empty">No tasks yet. Ask Claude to create one!</td></tr>';
             prevIds.clear();
             return;
         }
@@ -81,12 +98,18 @@
                     <tr class="${isNew ? 'flash' : ''}">
                         <td><code>${t.id}</code></td>
                         <td>${escapeHtml(t.title)}</td>
+                        <td class="md">${renderMarkdown(t.description)}</td>
                         <td><span class="status ${t.status}">${t.status}</span></td>
                     </tr>
                 `;
         }).join('');
 
         prevIds = currentIds;
+    }
+
+    function renderMarkdown(text) {
+        if (text == null || text === '') return '';
+        return DOMPurify.sanitize(marked.parse(String(text)));
     }
 
     function escapeHtml(s) {
